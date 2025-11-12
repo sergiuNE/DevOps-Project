@@ -1,3 +1,4 @@
+[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/5TKraKfR)
 Voor de projectopdracht 25-26 zet je een Moodle 4.4 installatie op op je Bletchley machine. Moodle is het achterliggende onderwijsplatform waarop DigitAP bouwt. Je doet dit aan de hand van [de Bitnami (Legacy) Moodle image](https://hub.docker.com/r/bitnamilegacy/moodle). Je Moodle zal ook integreren met een "LTI-app". Dit is een externe applicatie die je in Moodle kan presenteren alsof het een onderdeel van een cursus is. Verder zijn er een aantal extra aandachtspunten:
 - je vindt op [Panopto](https://ap.cloud.panopto.eu/Panopto/Pages/Viewer.aspx?id=3911da00-daab-4e76-a5c0-b39201524359) een instructiefilmpje rond het gebruik van de LTI-app
 - op de Docker Hub pagina bitnamilegacy/moodle vind je niet veel info, maar op bitnami/moodle vind je de nodige info wel
