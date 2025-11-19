@@ -1,0 +1,48 @@
+# Secrets - NOOIT committen!
+secrets/
+*.secret
+*.txt
+
+# Docker volumes
+*_data/
+volumes/
+
+# Environment files
+.env
+*.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ltitool/__pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Certificates
+*.pem
+*.crt
+*.key
+certs/
+
+# Backup files
+*.bak
+*.backup

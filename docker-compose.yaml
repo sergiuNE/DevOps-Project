@@ -1,24 +1,118 @@
 version: "3.9"
 
 services:
+  # Database (alleen toegankelijk via backend netwerk)
+  mariadb:
+    image: bitnamilegacy/mariadb:10.6
+    environment:
+      - ALLOW_EMPTY_PASSWORD=no
+      - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
+      - MARIADB_DATABASE=bitnami_moodle
+      - MARIADB_USER=bn_moodle
+      - MARIADB_PASSWORD_FILE=/run/secrets/db_password
+    volumes:
+      - mariadb_data:/bitnami/mariadb
+    networks:
+      - backend
+    secrets:
+      - db_root_password
+      - db_password
 
-  nginx:
-    build: ./frontend
-    container_name: nginx_app
+  # Moodle applicatie
+  moodle:
+    image: bitnamilegacy/moodle:4.4
+    depends_on:
+      - mariadb
+    environment:
+      - MOODLE_DATABASE_HOST=mariadb
+      - MOODLE_DATABASE_PORT_NUMBER=3306
+      - MOODLE_DATABASE_USER=bn_moodle
+      - MOODLE_DATABASE_PASSWORD_FILE=/run/secrets/db_password
+      - MOODLE_DATABASE_NAME=bitnami_moodle
+      - ALLOW_EMPTY_PASSWORD=no
+      # Belangrijke configuratie voor Traefik
+      - MOODLE_HOST=10.158.10.72
+      - MOODLE_REVERSEPROXY=yes
+      - MOODLE_SSLPROXY=no
+      - MOODLE_SKIP_BOOTSTRAP=no
+    volumes:
+      - moodle_data:/bitnami/moodle
+      - moodledata_data:/bitnami/moodledata
+    networks:
+      - frontend
+      - backend
+    secrets:
+      - db_password
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nginx.rule=PathPrefix(`/`)"
-      - "traefik.http.services.nginx.loadbalancer.server.port=80"
+      - "traefik.docker.network=devops-moodle_frontend"
+      # HTTP Router
+      - "traefik.http.routers.moodle.rule=Host(`10.158.10.72`)"
+      - "traefik.http.routers.moodle.entrypoints=web"
+      - "traefik.http.services.moodle.loadbalancer.server.port=8080"
 
+  # LTI Tool
+  ltitool:
+    build:
+      context: ./ltitool
+      dockerfile: Dockerfile
+    environment:
+      - SESSION_SECRET_FILE=/run/secrets/session_secret
+      - OAUTH_SECRET_FILE=/run/secrets/oauth_secret
+    networks:
+      - frontend
+    secrets:
+      - session_secret
+      - oauth_secret
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=devops-moodle_frontend"
+      # HTTP Router voor LTI
+      - "traefik.http.routers.lti.rule=Host(`10.158.10.72`) && PathPrefix(`/lti`)"
+      - "traefik.http.routers.lti.entrypoints=web"
+      - "traefik.http.services.lti.loadbalancer.server.port=5000"
+      # Strip /lti prefix
+      - "traefik.http.middlewares.lti-stripprefix.stripprefix.prefixes=/lti"
+      - "traefik.http.routers.lti.middlewares=lti-stripprefix"
+
+  # Traefik Reverse Proxy
   traefik:
     image: traefik:v2.11
-    container_name: traefik
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
+      - "--log.level=DEBUG"
     ports:
-      - "8080:80"
-      - "8081:8080"  # dashboard poort
+      - "80:80"
+      - "8081:8080"  # Traefik Dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true
+
+volumes:
+  moodle_data:
+    driver: local
+  mariadb_data:
+    driver: local
+  moodledata_data:
+    driver: local
+
+secrets:
+  db_root_password:
+    file: ./secrets/db_root_password.txt
+  db_password:
+    file: ./secrets/db_password.txt
+  session_secret:
+    file: ./secrets/session_secret.txt
+  oauth_secret:
+    file: ./secrets/oauth_secret.txt
