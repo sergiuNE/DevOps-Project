@@ -1,0 +1,11 @@
+http:
+  routers:
+    nginx-router:
+      rule: "Host(`localhost`)"
+      service: nginx-service
+
+  services:
+    nginx-service:
+      loadBalancer:
+        servers:
+          - url: "http://nginx:80"
