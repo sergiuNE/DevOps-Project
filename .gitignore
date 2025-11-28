@@ -53,3 +53,8 @@ certs/
 
 # Traefik dynamic files that shouldn't be committed 
 traefik/acme.json
+
+# Jenkins SSH & certs should not contain private keys
+jenkins/ssh/*
+!jenkins/ssh/*.pub
+traefik/certs/

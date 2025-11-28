@@ -20,21 +20,24 @@ LTI tool toont correct: User ID, Roles, Context ID
 ---
 
 ## Fase 2: Productie Setup (IN PROGRESS)
-- [ ] docker-compose.yaml met Traefik (Applicatie achter de reverse proxy zetten)
-- [ ] Secrets management configureren
-- [ ] Netwerk scheiding (frontend/backend)
-- [ ] Traefik reverse proxy werkend
-- [ ] Moodle bereikbaar via Traefik
-- [ ] LTI tool bereikbaar via Traefik op /lti path
+- [x] docker-compose.yaml met Traefik (Applicatie achter de reverse proxy zetten)
+- [x] Secrets management configureren
+- [x] Netwerk scheiding (frontend/backend)
+        - Drontend: services die publiek bereikbaar moeten zijn (Traefik, Moodle, LTI) zitten hier.
+        - Backend: interne netwerk alleen voor backend-services (database).   
+- [x] Traefik reverse proxy werkend
+- [x] Moodle bereikbaar via Traefik
+- [x] LTI tool bereikbaar via Traefik op /lti path
 - [ ] HTTPS configuratie met mkcert
+- [x] Elke onderdeel van de applicatie in aparte container
 
 ---
 
 ## Fase 3: Jenkins CI/CD (TODO)
-- [ ] Jenkinsfile aanmaken
-- [ ] Docker images bouwen via Jenkins
-- [ ] Push naar Docker Hub
-- [ ] Automatische herdeployment
+- [x] Jenkinsfile aanmaken
+- [x] Docker images bouwen via Jenkins
+- [x] Push naar Docker Hub
+- [x] Automatische herdeployment
 
 ---
 

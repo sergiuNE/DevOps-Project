@@ -45,6 +45,7 @@ services:
       - "traefik.docker.network=doorlopende-projectopdracht-sergiune_frontend"
       - "traefik.http.routers.moodle.rule=Host(`10.158.10.72`)"
       - "traefik.http.routers.moodle.entrypoints=web"
+      - "traefik.http.routers.moodle.priority=1"
       - "traefik.http.services.moodle.loadbalancer.server.port=8080"
 
   ltitool:
@@ -64,6 +65,7 @@ services:
       - "traefik.docker.network=doorlopende-projectopdracht-sergiune_frontend"
       - "traefik.http.routers.lti.rule=Host(`10.158.10.72`) && PathPrefix(`/lti`)"
       - "traefik.http.routers.lti.entrypoints=web"
+      - "traefik.http.routers.lti.priority=50"
       - "traefik.http.services.lti.loadbalancer.server.port=5000"
       - "traefik.http.middlewares.lti-stripprefix.stripprefix.prefixes=/lti"
       - "traefik.http.routers.lti.middlewares=lti-stripprefix"
@@ -86,13 +88,36 @@ services:
     networks:
       - frontend
 
+  jenkins:
+    image: jenkins/jenkins:lts
+    restart: unless-stopped
+    user: root
+    volumes:
+      - jenkins_data:/var/jenkins_home
+    networks:
+      - frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=doorlopende-projectopdracht-sergiune_frontend"
+      - "traefik.http.routers.jenkins.rule=Host(`10.158.10.72`) && PathPrefix(`/jenkins`)"
+      - "traefik.http.routers.jenkins.entrypoints=web"
+      - "traefik.http.routers.jenkins.priority=100"
+      - "traefik.http.services.jenkins.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.jenkins-headers.headers.customrequestheaders.X-Forwarded-Proto=http"
+      - "traefik.http.middlewares.jenkins-prefix.addprefix.prefix=/jenkins"
+      - "traefik.http.routers.jenkins.middlewares=jenkins-headers"
+    environment:
+      - JENKINS_OPTS=--prefix=/jenkins
+
 volumes:
   moodle_data:
-    driver: local
+   driver: local
   moodledata_data:
-    driver: local
+   driver: local
   mariadb_data:
-    driver: local
+   driver: local
+  jenkins_data:
+   driver: local
 
 networks:
   frontend:
