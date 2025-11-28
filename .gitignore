@@ -37,6 +37,10 @@ Thumbs.db
 *.log
 logs/
 
+# Build artefacts
+dist/
+build/
+
 # Certificates
 *.pem
 *.crt
@@ -46,3 +50,6 @@ certs/
 # Backup files
 *.bak
 *.backup
+
+# Traefik dynamic files that shouldn't be committed 
+traefik/acme.json

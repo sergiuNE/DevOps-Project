@@ -1,7 +1,6 @@
 version: "3.9"
 
 services:
-  # Database (alleen toegankelijk via backend netwerk)
   mariadb:
     image: bitnamilegacy/mariadb:10.6
     environment:
@@ -18,7 +17,6 @@ services:
       - db_root_password
       - db_password
 
-  # Moodle applicatie
   moodle:
     image: bitnamilegacy/moodle:4.4
     depends_on:
@@ -30,7 +28,6 @@ services:
       - MOODLE_DATABASE_PASSWORD_FILE=/run/secrets/db_password
       - MOODLE_DATABASE_NAME=bitnami_moodle
       - ALLOW_EMPTY_PASSWORD=no
-      # Belangrijke configuratie voor Traefik
       - MOODLE_HOST=10.158.10.72
       - MOODLE_REVERSEPROXY=yes
       - MOODLE_SSLPROXY=no
@@ -45,13 +42,11 @@ services:
       - db_password
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=devops-moodle_frontend"
-      # HTTP Router
+      - "traefik.docker.network=doorlopende-projectopdracht-sergiune_frontend"
       - "traefik.http.routers.moodle.rule=Host(`10.158.10.72`)"
       - "traefik.http.routers.moodle.entrypoints=web"
       - "traefik.http.services.moodle.loadbalancer.server.port=8080"
 
-  # LTI Tool
   ltitool:
     build:
       context: ./ltitool
@@ -66,31 +61,38 @@ services:
       - oauth_secret
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=devops-moodle_frontend"
-      # HTTP Router voor LTI
+      - "traefik.docker.network=doorlopende-projectopdracht-sergiune_frontend"
       - "traefik.http.routers.lti.rule=Host(`10.158.10.72`) && PathPrefix(`/lti`)"
       - "traefik.http.routers.lti.entrypoints=web"
       - "traefik.http.services.lti.loadbalancer.server.port=5000"
-      # Strip /lti prefix
       - "traefik.http.middlewares.lti-stripprefix.stripprefix.prefixes=/lti"
       - "traefik.http.routers.lti.middlewares=lti-stripprefix"
 
-  # Traefik Reverse Proxy
   traefik:
     image: traefik:v2.11
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
+      - "--providers.file.filename=/etc/traefik/dynamic.yml"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--log.level=DEBUG"
     ports:
       - "80:80"
-      - "8081:8080"  # Traefik Dashboard
+      - "8081:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
     networks:
       - frontend
+
+volumes:
+  moodle_data:
+    driver: local
+  moodledata_data:
+    driver: local
+  mariadb_data:
+    driver: local
 
 networks:
   frontend:
@@ -98,14 +100,6 @@ networks:
   backend:
     driver: bridge
     internal: true
-
-volumes:
-  moodle_data:
-    driver: local
-  mariadb_data:
-    driver: local
-  moodledata_data:
-    driver: local
 
 secrets:
   db_root_password:
