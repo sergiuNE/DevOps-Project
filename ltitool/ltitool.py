@@ -118,7 +118,7 @@ def first_learning_tool_step():
     </head>
     <body>
         <div class="info">
-            <h1>🎉 Hallo, LTI-app!</h1>
+            <h1>Hallo, LTI-app!</h1>
             <p><strong>User ID:</strong> {{ user_id }}</p>
             <p><strong>Roles:</strong> {{ roles }}</p>
             <p><strong>Context ID:</strong> {{ context_id }}</p>
