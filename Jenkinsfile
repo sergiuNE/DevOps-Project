@@ -1,47 +1,73 @@
 pipeline {
     agent { label 'bletchley' }
-
+    
+    environment {
+        DOCKERHUB_CREDS = credentials('dockerhub-creds')
+    }
+    
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-
-        stage('Build LTI Image') {
+        
+        stage('Prepare Secrets') {
             steps {
-                dir('ltitool') {
-                    sh 'docker build -t sergiune/moodle-lti:${BUILD_NUMBER} .'
-                    sh 'docker tag sergiune/moodle-lti:${BUILD_NUMBER} sergiune/moodle-lti:latest'
+                script {
+                    sh 'mkdir -p secrets'
+                    withCredentials([
+                        string(credentialsId: 'db-root-password', variable: 'DB_ROOT_PW'),
+                        string(credentialsId: 'db-password', variable: 'DB_PW'),
+                        string(credentialsId: 'session-secret', variable: 'SESSION_SEC'),
+                        string(credentialsId: 'oauth-secret', variable: 'OAUTH_SEC')
+                    ]) {
+                        sh '''
+                            echo "$DB_ROOT_PW" > secrets/db_root_password.txt
+                            echo "$DB_PW" > secrets/db_password.txt
+                            echo "$SESSION_SEC" > secrets/session_secret.txt
+                            echo "$OAUTH_SEC" > secrets/oauth_secret.txt
+                            chmod 600 secrets/*.txt
+                        '''
+                    }
                 }
             }
         }
-
+        
+        stage('Build LTI Image') {
+            steps {
+                dir('ltitool') {
+                    sh 'docker build -t sergiune/moodle-lti:3 .'
+                    sh 'docker tag sergiune/moodle-lti:3 sergiune/moodle-lti:latest'
+                }
+            }
+        }
+        
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                    sh 'docker push sergiune/moodle-lti:${BUILD_NUMBER}'
+                    sh 'docker push sergiune/moodle-lti:3'
                     sh 'docker push sergiune/moodle-lti:latest'
                     sh 'docker logout'
                 }
             }
         }
-
+        
         stage('Deploy') {
             steps {
-                sh 'docker compose down || true'
+                sh 'docker compose down'
                 sh 'docker compose up -d'
             }
         }
     }
-
+    
     post {
-        success {
-            echo '✅ Pipeline succeeded!  Moodle stack deployed.'
-        }
         failure {
-            echo '❌ Pipeline failed!  Check logs.'
+            echo '❌ Pipeline failed!   Check logs.'
+        }
+        success {
+            echo '✅ Pipeline succeeded!'
         }
     }
 }
