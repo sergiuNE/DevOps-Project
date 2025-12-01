@@ -23,7 +23,7 @@ pipeline {
                         string(credentialsId: 'oauth-secret', variable: 'OAUTH_SEC')
                     ]) {
                         sh '''
-                            echo "$DB_ROOT_PW" > secrets/db_root_password.txt
+                            echo "$DB_ROOT_PW" > secrets/db_root_password. txt
                             echo "$DB_PW" > secrets/db_password.txt
                             echo "$SESSION_SEC" > secrets/session_secret.txt
                             echo "$OAUTH_SEC" > secrets/oauth_secret.txt
@@ -53,14 +53,23 @@ pipeline {
                 }
             }
         }
+        
+        stage('Deploy') {
+            steps {
+                sh '''
+                    docker compose pull ltitool
+                    docker compose up -d --force-recreate ltitool
+                '''
+            }
+        }
     }
     
     post {
         failure {
-            echo '❌ Pipeline failed!    Check logs.'
+            echo '❌ Pipeline failed!  Check logs.'
         }
         success {
-            echo '✅ Image built and pushed!  Run: docker compose pull && docker compose up -d'
+            echo '✅ Pipeline succeeded!  LTI tool deployed.'
         }
     }
 }
