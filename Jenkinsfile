@@ -27,7 +27,7 @@ pipeline {
                             echo "$DB_PW" > secrets/db_password.txt
                             echo "$SESSION_SEC" > secrets/session_secret.txt
                             echo "$OAUTH_SEC" > secrets/oauth_secret.txt
-                            chmod 600 secrets/*. txt
+                            chmod 600 secrets/*.txt
                         '''
                     }
                 }
