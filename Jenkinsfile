@@ -27,7 +27,7 @@ pipeline {
                             echo "$DB_PW" > secrets/db_password.txt
                             echo "$SESSION_SEC" > secrets/session_secret.txt
                             echo "$OAUTH_SEC" > secrets/oauth_secret.txt
-                            chmod 600 secrets/*.txt
+                            chmod 600 secrets/*. txt
                         '''
                     }
                 }
@@ -53,21 +53,14 @@ pipeline {
                 }
             }
         }
-        
-        stage('Deploy') {
-            steps {
-                sh 'docker compose down'
-                sh 'docker compose up -d'
-            }
-        }
     }
     
     post {
         failure {
-            echo '❌ Pipeline failed!   Check logs.'
+            echo '❌ Pipeline failed!    Check logs.'
         }
         success {
-            echo '✅ Pipeline succeeded!'
+            echo '✅ Image built and pushed!  Run: docker compose pull && docker compose up -d'
         }
     }
 }
