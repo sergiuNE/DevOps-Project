@@ -9,12 +9,22 @@
 - [x] Docker netwerken geconfigureerd
 
 **Toegang test setup:**
-- Moodle: http://10.158.10.72/
-- LTI Tool: http://10.158.10.72/lti
-- LTI Tool: http://10.158.10.72/lti/health (Health checks)
+- Moodle: https://10.158.10.72/
+- LTI Tool: https://10.158.10.72/lti
+- LTI Tool: https://10.158.10.72/lti/health (Health checks)
 - Default login: user / bitnami
 - Traefik: http://10.158.10.72:8081/dashboard/#/
+- Traefik metrics: 
+      - Grafana -> Dashboards -> Traefik
+      - http://10.158.10.72:8081/metrics
+      - In Prometheus query: traefik_entrypoint_requests_total 
 - Jenkins: http://10.158.10.72/jenkins
+- Prometheus: http://10.158.10.72:9090
+- Prometheus metrics: http://10.158.10.72:9090/metrics
+- Grafana: http://10.158.10.72:3000
+- Node Exporter metrics: http://10.158.10.72:9100/metrics
+- cAdvisor: http://10.158.10.72:8082
+- cAdvizor metrics: http://10.158.10.72:8082/metrics
 
 **Test resultaat:**
 LTI tool toont correct: User ID, Roles, Context ID
@@ -30,7 +40,7 @@ LTI tool toont correct: User ID, Roles, Context ID
 - [x] Traefik reverse proxy werkend
 - [x] Moodle bereikbaar via Traefik
 - [x] LTI tool bereikbaar via Traefik op /lti path
-- [ ] HTTPS configuratie met mkcert
+- [x] HTTPS configuratie met mkcert
 - [x] Elke onderdeel van de applicatie in aparte container
 
 ---
@@ -47,13 +57,12 @@ LTI tool toont correct: User ID, Roles, Context ID
 ## Fase 4: Extra Features
 - [x] Monitoring implementeren (Prometheus, Grafana, Node Exporter & cAdvisor)
       - Prometheus: http://10.158.10.72:9090
-      - Grafana: http://10.158.10. 72:3000
-      - Node Exporter metrics: http://10.158.10. 72:9100/metrics
+      - Grafana: http://10.158.10.72:3000
+      - Node Exporter metrics: http://10.158.10.72:9100/metrics
       - cAdvisor: http://10.158.10.72:8082
 
 - [x] Health checks toevoegen
 - [x] Metrics voor traefiek toevoegen
-- [ ] [Kies één van de extra features uit opgave]
 
 ---
 

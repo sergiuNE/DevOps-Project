@@ -28,7 +28,7 @@ services:
       - ALLOW_EMPTY_PASSWORD=no
       - MOODLE_HOST=10.158.10.72
       - MOODLE_REVERSEPROXY=yes
-      - MOODLE_SSLPROXY=no
+      - MOODLE_SSLPROXY=yes
       - MOODLE_SKIP_BOOTSTRAP=no
     volumes:
       - moodle_data:/bitnami/moodle
@@ -43,8 +43,15 @@ services:
       - "traefik.docker.network=doorlopende-projectopdracht-sergiune_frontend"
       - "traefik.http.routers.moodle.rule=Host(`10.158.10.72`)"
       - "traefik.http.routers.moodle.entrypoints=web"
+      - "traefik.http.routers.moodle-secure.rule=Host(`10.158.10.72`)"
+      - "traefik.http.routers.moodle-secure.entrypoints=websecure"
       - "traefik.http.routers.moodle.priority=1"
+      - "traefik.http.routers.moodle-secure.priority=1"
+      - "traefik.http.routers.moodle-secure.tls=true"
       - "traefik.http.services.moodle.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+      - "traefik.http.routers.moodle.middlewares=redirect-to-https"
 
   ltitool:
     build:
@@ -62,28 +69,41 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=doorlopende-projectopdracht-sergiune_frontend"
       - "traefik.http.routers.lti.rule=Host(`10.158.10.72`) && PathPrefix(`/lti`)"
+      - "traefik.http.routers.lti-secure.rule=Host(`10.158.10.72`) && PathPrefix(`/lti`)"
       - "traefik.http.routers.lti.entrypoints=web"
+      - "traefik.http.routers.lti-secure.entrypoints=websecure"
       - "traefik.http.routers.lti.priority=50"
+      - "traefik.http.routers.lti-secure.priority=50"
+      - "traefik.http.routers.lti-secure.tls=true"
       - "traefik.http.services.lti.loadbalancer.server.port=5000"
       - "traefik.http.middlewares.lti-stripprefix.stripprefix.prefixes=/lti"
       - "traefik.http.routers.lti.middlewares=lti-stripprefix"
+      - "traefik.http.routers.lti-secure.middlewares=lti-stripprefix"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+      - "traefik.http.routers.moodle.middlewares=redirect-to-https"
 
   traefik:
     image: traefik:v2.11
+    restart: unless-stopped
     command:
+      - "--api.dashboard=true"
       - "--api.insecure=true"
       - "--providers.docker=true"
-      - "--providers.file.filename=/etc/traefik/dynamic.yml"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
       - "--entrypoints.web.address=:80"
-      - "--log.level=DEBUG"
+      - "--entrypoints.websecure.address=:443"
       - "--metrics.prometheus=true"
     ports:
       - "80:80"
+      - "443:443"
       - "8081:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - ./certs:/etc/traefik/certs:ro
+      - ./traefik-config.yml:/etc/traefik/dynamic/traefik-config.yml:ro
     networks:
       - frontend
 
