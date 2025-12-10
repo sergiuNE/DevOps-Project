@@ -9,4 +9,5 @@
 | 0.04    | 28/11/2025 | Neagu Sergiu | Derde week             | Jenkins & Health checks voor LTI tool toegevoegd                      |
 | 0.05    | 1/12/2025  | Neagu Sergiu | Vierde week            | Monitoring (Prometheus, Grafana, Metrics & cAdvisor) toegevoegd       |
 | 0.06    | 3/12/2025  | Neagu Sergiu | Vierde week            | Mkcert & Metrics voor traefiek toegevoegd                             |
-| 0.07    | 6/12/2025  | Neagu Sergiu | Vierde week            | README file geschreven                                                |
+| 0.07    | 10/12/2025 | Neagu Sergiu | Vijde week             | README.md file geschreven                                             |
+| 1.0     | 13/12/2025 | Neagu Sergiu | Vijfde week            | Applicatie getest                                                     |
