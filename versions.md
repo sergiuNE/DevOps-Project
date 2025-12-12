@@ -10,4 +10,6 @@
 | 0.05    | 1/12/2025  | Neagu Sergiu | Vierde week            | Monitoring (Prometheus, Grafana, Metrics & cAdvisor) toegevoegd       |
 | 0.06    | 3/12/2025  | Neagu Sergiu | Vierde week            | Mkcert & Metrics voor traefiek toegevoegd                             |
 | 0.07    | 10/12/2025 | Neagu Sergiu | Vijde week             | README.md file geschreven                                             |
-| 1.0     | 13/12/2025 | Neagu Sergiu | Vijfde week            | Applicatie getest                                                     |
+| 0.08    | 12/12/2025 | Neagu Sergiu | Vijde week             | README.md file aangepast                                              |
+| 0.09    | 13/12/2025 | Neagu Sergiu | Vijde week             | Applicatie getest                                                     |
+| 1.0     | 14/12/2025 | Neagu Sergiu | Vijfde week            | Applicatie getest                                                     |
