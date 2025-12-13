@@ -131,6 +131,14 @@ docker compose -f ltitest.yaml up -d
 docker compose up -d
 ```
 
+**Start monitoring stack (eerste keer)**
+
+```bash
+docker compose -f prometheus/docker-compose.monitoring.yml up -d
+```
+
+**Opmerking:** Deze stap is alleen nodig bij de eerste setup. Monitoring containers blijven daarna draaien door restart: unless-stopped.
+
 **Wacht ~2 minuten** voor alle services opstarten.
 
 ---
@@ -147,10 +155,10 @@ Je moet zien:  `moodle`, `mariadb`, `ltitool`, `traefik`, `jenkins`, `prometheus
 
 ### 6. Toegang tot services
 
-| Service | URL |
-|---------|-----|
+| Service | URL | Opmerking |
+|---------|-----|-----------|
 | **Moodle** | https://10.158.10.72/ |
-| **LTI Tool** | https://10.158.10.72/lti |
+| **LTI Tool** | https://10.158.10.72/lti | Toont GET "LTI Tool is running! This endpoint expects a POST request from Moodle LTI." De LTI opent u vanuit Moodle intern, maar de LTI is ook beschikbaar via deze URL.
 | **LTI Health** | https://10.158.10.72/lti/health |
 | **Traefik Dashboard** | http://10.158.10.72:8081/dashboard/ |
 | **Traefik Metrics** | http://10.158.10.72:8081/metrics |
@@ -290,26 +298,51 @@ De pipeline draait automatisch bij git push via de `Jenkinsfile`.
 - System metrics (CPU, RAM, disk via Node Exporter)
 - Container metrics (cAdvisor)
 
+**Prometheus quick start:**
+- Ga naar **Status** → **Targets** om health te controleren
+- Type in query bar: `up` om alle targets te zien
+- Type in query bar: `container_memory_usage_bytes` om container metrics te zien
+
+**Grafana quick start:**
+- Login:  `admin` / `admin` (verander wachtwoord bij eerste login)
+- Ga naar **Dashboards** om pre-configured dashboards te zien
+- Klik **Import** om extra dashboards toe te voegen
+
 ---
 
 ## Project structuur
 
 ```
-.
-├── docker-compose.yaml          # Productie stack
-├── ltitest.yaml                 # Test stack
-├── traefik-config.yml           # Traefik TLS config
-├── Jenkinsfile                  # CI/CD pipeline
-├── certs/                       # mkcert certificaten (niet in git)
-├── secrets/                     # Wachtwoorden (niet in git)
-├── ltitool/                     # LTI applicatie source
-│   ├── app.py
+. 
+├── docker-compose.yaml                      # Productie stack
+├── ltitest.yaml                             # Test stack
+├── traefik-config.yml                       # Traefik TLS config
+├── Jenkinsfile                              # CI/CD pipeline
+├── prometheus.yml                           # Prometheus configuratie
+├── certs/                                   # mkcert certificaten (niet in git)
+│   ├── moodle-cert.pem
+│   └── moodle-key.pem
+├── secrets/                                 # Wachtwoorden (niet in git)
+│   ├── db_password.txt
+│   ├── db_root_password.txt
+│   ├── oauth_secret.txt
+│   └── session_secret.txt
+├── ltitool/                                 # LTI applicatie source
+│   ├── static/
+|   |   ├── roadmapstyle.css
 │   ├── Dockerfile
+│   ├── ltitool.py
+│   ├── README.md
 │   └── requirements.txt
-├── prometheus/                  # Prometheus config
-├── PROGRESS.md                  # Projectvoortgang
-├── versions.md                  # Changelog
-└── README.md                    # Deze file
+├── prometheus/                              # Prometheus monitoring stack
+│   └── docker-compose.monitoring.yml
+├── traefik/                                 # Traefik configuratie
+│   ├── dynamic.yml
+│   └── traefik.yml
+├── PROGRESS.md                              # Projectvoortgang
+├── versions.md                              # Changelog
+├── .gitignore                               # Git ignore rules
+└── README.md                                # Deze file
 ```
 
 ---
@@ -319,7 +352,7 @@ De pipeline draait automatisch bij git push via de `Jenkinsfile`.
 ### Netwerken
 
 **Frontend** (`frontend`):
-- Traefik, Moodle, LTI tool, Jenkins
+- Traefik, Moodle, LTI tool, Jenkins, Prometheus, Grafana & cAdvisor
 - Toegankelijk vanaf host machine
 
 **Backend** (`backend`):

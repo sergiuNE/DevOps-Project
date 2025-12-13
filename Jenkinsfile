@@ -2,7 +2,7 @@ pipeline {
     agent { label 'bletchley' }
 
     triggers {
-        pollSCM('H/2 * * * *')  // Check elke 2 minuten voor nieuwe commits
+        githubPush() // Only build on ACTUAL push
     }
 
     options {
