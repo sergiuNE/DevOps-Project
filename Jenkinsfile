@@ -2,7 +2,7 @@ pipeline {
     agent { label 'bletchley' }
 
     triggers {
-        githubPush() // Only build on ACTUAL push
+        pollSCM('H/20 * * * *')  // Elke 20 minuten checken
     }
 
     options {
