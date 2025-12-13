@@ -1,5 +1,9 @@
 pipeline {
     agent { label 'bletchley' }
+
+    triggers {
+        pollSCM('H/2 * * * *')  // Check elke 2 minuten voor nieuwe commits
+    }
     
     environment {
         DOCKERHUB_CREDS = credentials('dockerhub-creds')
