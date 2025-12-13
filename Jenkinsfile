@@ -4,6 +4,10 @@ pipeline {
     triggers {
         pollSCM('H/2 * * * *')  // Check elke 2 minuten voor nieuwe commits
     }
+
+    options {
+        skipStagesAfterUnstable()
+    }
     
     environment {
         DOCKERHUB_CREDS = credentials('dockerhub-creds')
