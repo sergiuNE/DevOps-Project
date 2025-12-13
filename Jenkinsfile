@@ -31,7 +31,7 @@ pipeline {
                         string(credentialsId: 'oauth-secret', variable: 'OAUTH_SEC')
                     ]) {
                         sh '''
-                            echo "$DB_ROOT_PW" > secrets/db_root_password. txt
+                            echo "$DB_ROOT_PW" > secrets/db_root_password.txt
                             echo "$DB_PW" > secrets/db_password.txt
                             echo "$SESSION_SEC" > secrets/session_secret.txt
                             echo "$OAUTH_SEC" > secrets/oauth_secret.txt
