@@ -1,27 +1,27 @@
-# Doorlopende Projectopdracht — Moodle 4.4 met LTI, Traefik, Jenkins & Monitoring
+# Ongoing Project Assignment — Moodle 4.4 with LTI, Traefik, Jenkins & Monitoring
 
-## Beschrijving
+## Description
 
-Deze repository bevat een Docker Compose based deployment van:
+This repository contains a Docker Compose based deployment of:
 
 - **Moodle 4.4** (Bitnami legacy image)
-- **MariaDB** (persistente opslag)
-- **LTI-tool** (externe applicatie geïntegreerd in Moodle)
-- **Traefik** als reverse-proxy / TLS terminator
+- **MariaDB** (persistent storage)
+- **LTI tool** (external application integrated in Moodle)
+- **Traefik** as reverse proxy / TLS terminator
 - **CI/CD via Jenkins** (build, push, redeploy)
 - **Monitoring**: Prometheus, Grafana, cAdvisor, Node Exporter
 
-**Doel**: een reproduceerbare dev / productiesetup waarbij: 
-- `ltitest.yaml` = teststack (zonder Traefik & Jenkins) om LTI snel te testen
-- `docker-compose.yaml` = productiestack (Traefik, secrets, netwerken, monitoring, Jenkins)
+**Goal**: a reproducible dev / production setup where:
+- `ltitest.yaml` = test stack (without Traefik & Jenkins) for quickly testing LTI
+- `docker-compose.yaml` = production stack (Traefik, secrets, networks, monitoring, Jenkins)
 
 ---
 
-## Belangrijk
+## Important
 
-- **Gebruik geen plaintext credentials in git. ** Gevoelige waarden zitten in `./secrets/` en worden als Docker secrets gebruikt.
-- **Bitnami legacy images** worden gebruikt zoals vereist door de opdracht.
-- Deze installatie gebruikt **mkcert** voor lokale, vertrouwde TLS-certificaten (machine niet publiek bereikbaar). Voor productie op een publiek IP gebruik Let's Encrypt. 
+- **Do not use plaintext credentials in git.** Sensitive values are stored in `./secrets/` and used as Docker secrets.
+- **Bitnami legacy images** are used as required by the assignment.
+- This installation uses **mkcert** for local, trusted TLS certificates (machine not publicly reachable). For production on a public IP, use Let's Encrypt.
 
 ---
 
@@ -29,12 +29,12 @@ Deze repository bevat een Docker Compose based deployment van:
 
 - **Docker & Docker Compose v2** (`docker compose`)
 - **Git**
-- **mkcert** (voor lokale HTTPS)
-- (Optioneel) **Docker Hub account** (voor Jenkins CI/CD)
+- **mkcert** (for local HTTPS)
+- (Optional) **Docker Hub account** (for Jenkins CI/CD)
 
 ---
 
-## Snelstart — Eerste keer setup
+## Quick Start — First-time Setup
 
 ### 1. Clone repository
 
@@ -45,9 +45,9 @@ cd doorlopende-projectopdracht-sergiuNE
 
 ---
 
-### 2. Maak secrets aan
+### 2. Create secrets
 
-Maak de `secrets/` folder en vul wachtwoorden in: 
+Create the `secrets/` folder and fill in passwords:
 
 ```bash
 mkdir -p secrets
@@ -58,20 +58,20 @@ echo "your_secure_root_password" > secrets/db_root_password.txt
 # Database user password
 echo "your_secure_db_password" > secrets/db_password.txt
 
-# LTI session secret (minimaal 32 chars)
+# LTI session secret (minimum 32 chars)
 openssl rand -base64 32 > secrets/session_secret.txt
 
 # LTI OAuth secret
 echo "lti_oauth_secret" > secrets/oauth_secret.txt
 ```
 
-**⚠️ Belangrijk:** Deze files worden NIET gecommit naar git (zie `.gitignore`).
+**⚠️ Important:** These files are NOT committed to git (see `.gitignore`).
 
 ---
 
-### 3. Genereer TLS certificaten met mkcert
+### 3. Generate TLS certificates with mkcert
 
-**Installeer mkcert (Ubuntu/Debian):**
+**Install mkcert (Ubuntu/Debian):**
 
 ```bash
 sudo apt update
@@ -82,83 +82,83 @@ sudo mv mkcert /usr/local/bin/
 mkcert --version
 ```
 
-**Maak lokale CA en certificaten:**
+**Create local CA and certificates:**
 
 ```bash
-# Installeer lokale CA
+# Install local CA
 mkcert -install
 
-# Genereer certificaten (vervang 10.158.10.72 met jouw IP!)
+# Generate certificates (replace 10.158.10.72 with your IP!)
 mkdir -p certs
 cd certs
 mkcert -key-file moodle-key.pem -cert-file moodle-cert.pem 10.158.10.72 localhost moodle.local
 cd ..
 ```
 
-**Importeer root CA in je browser:**
+**Import root CA into your browser:**
 
 ```bash
-# Vind CA locatie
+# Find CA location
 mkcert -CAROOT
 
-# Kopieer rootCA.pem naar je lokale machine
+# Copy rootCA.pem to your local machine
 cp $(mkcert -CAROOT)/rootCA.pem ~/
 ```
 
-Importeer in **Brave/Chrome (Windows)**: 
-1. Open Certificate Manager (`certmgr.msc`) of via browser settings
-2. Importeer `rootCA.pem` in **Trusted Root Certification Authorities**
+Import in **Brave/Chrome (Windows)**:
+1. Open Certificate Manager (`certmgr.msc`) or via browser settings
+2. Import `rootCA.pem` into **Trusted Root Certification Authorities**
 
-Importeer in **Firefox**:
+Import in **Firefox**:
 1. Settings → Privacy & Security → View Certificates → Authorities
-2. Import `rootCA.pem` en vink "Trust this CA to identify websites" aan
+2. Import `rootCA.pem` and check "Trust this CA to identify websites"
 
-**Herstart je browser!**
+**Restart your browser!**
 
 ---
 
-### 4. Start de stack
+### 4. Start the stack
 
-**Optie A: Teststack (snel LTI testen, zonder Traefik/Jenkins):**
+**Option A: Test stack (quick LTI testing, without Traefik/Jenkins):**
 
 ```bash
 docker compose -f ltitest.yaml up -d
 ```
 
-**Optie B: Volledige productiestack:**
+**Option B: Full production stack:**
 
 ```bash
 docker compose up -d
 ```
 
-**Start monitoring stack (eerste keer)**
+**Start monitoring stack (first time)**
 
 ```bash
 docker compose -f prometheus/docker-compose.monitoring.yml up -d
 ```
 
-**Opmerking:** Deze stap is alleen nodig bij de eerste setup. Monitoring containers blijven daarna draaien door restart: unless-stopped.
+**Note:** This step is only required during the first setup. Monitoring containers will continue running afterwards due to `restart: unless-stopped`.
 
-**Wacht ~2 minuten** voor alle services opstarten.
+**Wait ~2 minutes** for all services to start up.
 
 ---
 
-### 5. Verifieer dat alles draait
+### 5. Verify everything is running
 
 ```bash
 docker ps
 ```
 
-Je moet zien:  `moodle`, `mariadb`, `ltitool`, `traefik`, `jenkins`, `prometheus`, `grafana`, `cadvisor`, `node-exporter`
+You should see: `moodle`, `mariadb`, `ltitool`, `traefik`, `jenkins`, `prometheus`, `grafana`, `cadvisor`, `node-exporter`
 
 ---
 
-### 6. Toegang tot services
+### 6. Access to services
 
-| Service | URL | Opmerking |
-|---------|-----|-----------|
+| Service | URL | Notes |
+|---------|-----|-------|
 | **Moodle** | https://10.158.10.72/ |
-| **LTI Tool** | https://10.158.10.72/lti | Toont GET "LTI Tool is running! This endpoint expects a POST request from Moodle LTI." De LTI opent u vanuit Moodle intern, maar de LTI is ook beschikbaar via deze URL.
+| **LTI Tool** | https://10.158.10.72/lti | Shows GET "LTI Tool is running! This endpoint expects a POST request from Moodle LTI." The LTI is opened from within Moodle, but the LTI is also accessible via this URL.
 | **LTI Health** | https://10.158.10.72/lti/health |
 | **Traefik Dashboard** | http://10.158.10.72:8081/dashboard/ |
 | **Traefik Metrics** | http://10.158.10.72:8081/metrics |
@@ -174,7 +174,7 @@ Je moet zien:  `moodle`, `mariadb`, `ltitool`, `traefik`, `jenkins`, `prometheus
 - Regular user: `user` / `bitnami`
 
 **Grafana login:**
-- Default: `admin` / `admin` (wijzig bij eerste login)
+- Default: `admin` / `admin` (change on first login)
 
 ---
 
@@ -182,55 +182,55 @@ Je moet zien:  `moodle`, `mariadb`, `ltitool`, `traefik`, `jenkins`, `prometheus
 
 ### 1. Unlock Jenkins
 
-Eerste keer opstarten:  haal admin wachtwoord op: 
+First startup: retrieve the admin password:
 
 ```bash
 docker compose logs jenkins | grep -A 5 "password"
-# OF
+# OR
 docker compose exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 ```
 
-Login op http://10.158.10.72/jenkins met dit wachtwoord.
+Login at http://10.158.10.72/jenkins with this password.
 
 ---
 
-### 2. Installeer suggested plugins
+### 2. Install suggested plugins
 
-Kies **"Install suggested plugins"** tijdens setup wizard.
+Choose **"Install suggested plugins"** during the setup wizard.
 
 ---
 
-### 3. Configureer Docker Hub credentials
+### 3. Configure Docker Hub credentials
 
-Voor automatische push naar Docker Hub:
+For automatic push to Docker Hub:
 
 1. **Jenkins** → **Manage Jenkins** → **Credentials** → **System** → **Global credentials**
 2. **Add Credentials**:
    - Kind: `Username with password`
-   - Username: `<jouw-dockerhub-username>`
-   - Password: `<jouw-dockerhub-password>`
+   - Username: `<your-dockerhub-username>`
+   - Password: `<your-dockerhub-password>`
    - ID: `dockerhub-credentials`
 3. **Save**
 
-**⚠️ Belangrijk:** De `Jenkinsfile` verwacht credential ID `dockerhub-credentials`.
+**⚠️ Important:** The `Jenkinsfile` expects credential ID `dockerhub-credentials`.
 
 ---
 
-### 4. Configureer Jenkins agent (optioneel)
+### 4. Configure Jenkins agent (optional)
 
-Voor gebruik van externe build agent:
+For use of an external build agent:
 
-1. Genereer SSH keypair:
+1. Generate SSH keypair:
    ```bash
    ssh-keygen -t ed25519 -f jenkins-key
    ```
 
-2. Op target machine:
+2. On target machine:
    ```bash
    sudo apt install openjdk-17-jre
    sudo useradd -m -s /bin/bash jenkins
    sudo mkdir -p /home/jenkins/.ssh
-   sudo nano /home/jenkins/.ssh/authorized_keys  # Plak public key
+   sudo nano /home/jenkins/.ssh/authorized_keys  # Paste public key
    sudo chown -R jenkins:jenkins /home/jenkins/.ssh
    sudo chmod 700 /home/jenkins/.ssh
    sudo chmod 600 /home/jenkins/.ssh/authorized_keys
@@ -244,42 +244,42 @@ Voor gebruik van externe build agent:
 
 ### 5. Pipeline setup
 
-De pipeline draait automatisch bij git push via de `Jenkinsfile`.
+The pipeline runs automatically on git push via the `Jenkinsfile`.
 
 **Stages:**
-1. **Build** - Bouwt LTI Docker image
-2. **Push** - Pusht naar Docker Hub (vereist credentials!)
-3. **Deploy** - Herstart stack met `docker compose up -d --build`
+1. **Build** - Builds the LTI Docker image
+2. **Push** - Pushes to Docker Hub (requires credentials!)
+3. **Deploy** - Restarts stack with `docker compose up -d --build`
 
 ---
 
-## LTI Tool configuratie in Moodle
+## LTI Tool configuration in Moodle
 
-### 1. Login als admin
+### 1. Login as admin
 
 `admin` / `bitnami`
 
 ---
 
-### 2. Voeg External Tool toe
+### 2. Add External Tool
 
 1. **Site administration** (⚙️) → **Plugins** → **Activity modules** → **External tool** → **Manage tools**
 2. **Configure a tool manually**:
    - Tool name: `Test LTI Tool`
    - Tool URL: `https://10.158.10.72/lti`
-   - Consumer key: `test_key` (vrij te kiezen)
-   - Shared secret: `lti_oauth_secret` (moet matchen met `secrets/oauth_secret.txt`)
+   - Consumer key: `test_key` (freely chosen)
+   - Shared secret: `lti_oauth_secret` (must match `secrets/oauth_secret.txt`)
    - Tool configuration usage: **Show as preconfigured tool**
 3. **Save changes**
 
 ---
 
-### 3. Voeg tool toe aan cursus
+### 3. Add tool to course
 
-1. Ga naar **Test Course**
+1. Go to **Test Course**
 2. **Turn editing on**
 3. **Add an activity** → **External tool**
-4. Selecteer je geconfigureerde tool
+4. Select your configured tool
 5. **Save and display**
 
 ---
@@ -288,10 +288,10 @@ De pipeline draait automatisch bij git push via de `Jenkinsfile`.
 
 **Prometheus targets:** http://10.158.10.72:9090/targets  
 **Grafana dashboards:** http://10.158.10.72:3000/dashboard  
-**Traefik Metrics:** http://10.158.10.72:8081/metrics   
+**Traefik Metrics:** http://10.158.10.72:8081/metrics  
 **Prometheus Metrics:** http://10.158.10.72:9090/metrics  
-**Node Exporter:** http://10.158.10.72:9100/metrics   
-**cAdvisor Metrics:** http://10.158.10.72:8082/metrics 
+**Node Exporter:** http://10.158.10.72:9100/metrics  
+**cAdvisor Metrics:** http://10.158.10.72:8082/metrics
 
 **Pre-configured dashboards:**
 - Traefik metrics (request rates, latency)
@@ -299,35 +299,35 @@ De pipeline draait automatisch bij git push via de `Jenkinsfile`.
 - Container metrics (cAdvisor)
 
 **Prometheus quick start:**
-- Ga naar **Status** → **Targets** om health te controleren
-- Type in query bar: `up` om alle targets te zien
-- Type in query bar: `container_memory_usage_bytes` om container metrics te zien
+- Go to **Status** → **Targets** to check health
+- Type in the query bar: `up` to see all targets
+- Type in the query bar: `container_memory_usage_bytes` to see container metrics
 
 **Grafana quick start:**
-- Login:  `admin` / `admin` (verander wachtwoord bij eerste login)
-- Ga naar **Dashboards** om pre-configured dashboards te zien
-- Klik **Import** om extra dashboards toe te voegen
+- Login: `admin` / `admin` (change password on first login)
+- Go to **Dashboards** to see pre-configured dashboards
+- Click **Import** to add extra dashboards
 
 ---
 
-## Project structuur
+## Project structure
 
 ```
-. 
-├── docker-compose.yaml                      # Productie stack
+.
+├── docker-compose.yaml                      # Production stack
 ├── ltitest.yaml                             # Test stack
 ├── traefik-config.yml                       # Traefik TLS config
 ├── Jenkinsfile                              # CI/CD pipeline
-├── prometheus.yml                           # Prometheus configuratie
-├── certs/                                   # mkcert certificaten (niet in git)
+├── prometheus.yml                           # Prometheus configuration
+├── certs/                                   # mkcert certificates (not in git)
 │   ├── moodle-cert.pem
 │   └── moodle-key.pem
-├── secrets/                                 # Wachtwoorden (niet in git)
+├── secrets/                                 # Passwords (not in git)
 │   ├── db_password.txt
 │   ├── db_root_password.txt
 │   ├── oauth_secret.txt
 │   └── session_secret.txt
-├── ltitool/                                 # LTI applicatie source
+├── ltitool/                                 # LTI application source
 │   ├── static/
 |   |   ├── roadmapstyle.css
 │   ├── Dockerfile
@@ -336,45 +336,44 @@ De pipeline draait automatisch bij git push via de `Jenkinsfile`.
 │   └── requirements.txt
 ├── prometheus/                              # Prometheus monitoring stack
 │   └── docker-compose.monitoring.yml
-├── traefik/                                 # Traefik configuratie
+├── traefik/                                 # Traefik configuration
 │   ├── dynamic.yml
 │   └── traefik.yml
-├── PROGRESS.md                              # Projectvoortgang
+├── PROGRESS.md                              # Project progress
 ├── versions.md                              # Changelog
 ├── .gitignore                               # Git ignore rules
-└── README.md                                # Deze file
+└── README.md                                # This file
 ```
 
 ---
 
-## Architectuur
+## Architecture
 
-### Netwerken
+### Networks
 
 **Frontend** (`frontend`):
 - Traefik, Moodle, LTI tool, Jenkins, Prometheus, Grafana & cAdvisor
-- Toegankelijk vanaf host machine
+- Accessible from the host machine
 
 **Backend** (`backend`):
-- MariaDB (internal network, geen internet access)
-- Alleen Moodle kan erbij
+- MariaDB (internal network, no internet access)
+- Only Moodle can access it
 
 ### Security
 
-- **Docker secrets** voor gevoelige data (niet in environment variables)
-- **Network isolation** (database niet publiek bereikbaar)
-
+- **Docker secrets** for sensitive data (not in environment variables)
+- **Network isolation** (database not publicly reachable)
 
 ---
 
-## Referenties
+## References
 
-- **Moodle documentatie**: https://docs.moodle.org/
+- **Moodle documentation**: https://docs.moodle.org/
 - **Traefik docs**: https://doc.traefik.io/traefik/
 - **mkcert**: https://github.com/FiloSottile/mkcert
 
 ---
 
-**Versie**:  Zie `versions.md` voor changelog  
-**Voortgang**:  Zie `PROGRESS.md` voor gedetailleerde projectstatus  
-**Auteur**: Neagu Sergiu
+**Version**: See `versions.md` for changelog  
+**Progress**: See `PROGRESS.md` for detailed project status  
+**Author**: Neagu Sergiu
